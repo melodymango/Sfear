@@ -76,20 +76,4 @@ public class Control : NetworkBehaviour {
 		//Snap back to sphere's surface
 		transform.position = transform.position.normalized*radius;
 	}
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.tag == "Player")
-        {
-            Debug.Log("Colliding with another player.");
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.tag == "Player")
-        {
-            Debug.Log("Not colliding with another player.");
-        }
-    }
 }
