@@ -52,7 +52,7 @@ public class Control : NetworkBehaviour {
 		}
 		
 		//Move
-		move(hspeed,vspeed);
+		Move(hspeed,vspeed);
 		
 		//Find relative position to sphere's center
 		relativePosition = transform.position - ball.transform.position;
@@ -68,7 +68,7 @@ public class Control : NetworkBehaviour {
 		transform.Rotate(90,0,0);
 	}
 	
-	void move(float h, float v){
+	void Move(float h, float v){
 		//Move in a tangent line (Because camera plane is tangent to sphere)
 		transform.position += Camera.main.transform.right*h;
 		transform.position += Camera.main.transform.up*v;
@@ -76,4 +76,20 @@ public class Control : NetworkBehaviour {
 		//Snap back to sphere's surface
 		transform.position = transform.position.normalized*radius;
 	}
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            Debug.Log("Colliding with another player.");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            Debug.Log("Not colliding with another player.");
+        }
+    }
 }
