@@ -32,19 +32,17 @@ public class Control : NetworkBehaviour {
 		if(!isLocalPlayer){
 			return;
 		}
-
-		//Used to keep old settings while making movement framerate-independent
-		float dT = Time.deltaTime*60;
+		
 		
 		//Slow down gradually
-		hspeed *= slowDown*dT;
-		vspeed *= slowDown*dT;
+		hspeed *= slowDown;
+		vspeed *= slowDown;
 		
 		//If user's finger is held down, calculate move speed.
 		if(Input.GetAxis("Tap") == 1){
 			//add mouse movement to this player's speed
-			hspeed -= Input.GetAxis("Mouse X")*acceleration*dT;
-			vspeed -= Input.GetAxis("Mouse Y")*acceleration*dT;
+			hspeed -= Input.GetAxis("Mouse X")*acceleration;
+			vspeed -= Input.GetAxis("Mouse Y")*acceleration;
 			
 			//Clamp to max speed
 			hspeed = Mathf.Clamp(hspeed, -maxSpeed, maxSpeed);
