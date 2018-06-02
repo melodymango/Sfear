@@ -32,16 +32,18 @@ public class Control : MonoBehaviour {
 			return;
 		}
 		*/
+		//Used to keep old settings while making movement framerate-independent
+		float dT = Time.deltaTime*60;
 		
 		//Slow down gradually
-		hspeed *= slowDown;
-		vspeed *= slowDown;
+		hspeed *= slowDown*dT;
+		vspeed *= slowDown*dT;
 		
 		//If user's finger is held down, calculate move speed.
 		if(Input.GetAxis("Tap") == 1){
 			//add mouse movement to this player's speed
-			hspeed -= Input.GetAxis("Mouse X")*acceleration;
-			vspeed -= Input.GetAxis("Mouse Y")*acceleration;
+			hspeed -= Input.GetAxis("Mouse X")*acceleration*dT;
+			vspeed -= Input.GetAxis("Mouse Y")*acceleration*dT;
 			
 			//Clamp to max speed
 			hspeed = Mathf.Clamp(hspeed, -maxSpeed, maxSpeed);
