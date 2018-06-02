@@ -17,6 +17,7 @@ public class AssignIt : NetworkBehaviour {
 
     //Public variables
     public Material taggedItMaterial;
+    public float cooldown;
 
     // Use this for initialization
     void Start()
@@ -41,19 +42,23 @@ public class AssignIt : NetworkBehaviour {
 
         itObject.transform.SetParent(players[i].transform, false);
         playerIt = players[i];
-        playerIt.GetComponent<MeshRenderer>().material = taggedItMaterial;
+        //playerIt.GetComponent<MeshRenderer>().material = taggedItMaterial;
+        playerIt.GetComponent<Control>().RpcChangeToIt();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Player" && other != playerIt.gameObject)
+        if (other.tag == "Player" && other.gameObject != playerIt.gameObject && other.GetComponent<Control>().CanBeTagged())
         {
-            playerIt.GetComponent<MeshRenderer>().material = defaultMaterial;
+            //playerIt.GetComponent<MeshRenderer>().material = defaultMaterial;
+            playerIt.GetComponent<Control>().RpcInvulnerable();
+            playerIt.GetComponent<Control>().RpcCanBeTagged(cooldown);
             playerIt = null;
             itObject.transform.parent = null;
             itObject.transform.SetParent(other.gameObject.transform, false);
             playerIt = other.gameObject;
-            playerIt.GetComponent<MeshRenderer>().material = taggedItMaterial;
+            //playerIt.GetComponent<MeshRenderer>().material = taggedItMaterial;
+            playerIt.GetComponent<Control>().RpcChangeToIt();
         }
     }
 

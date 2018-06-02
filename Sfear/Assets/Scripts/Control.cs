@@ -13,8 +13,13 @@ public class Control : NetworkBehaviour {
 	public float acceleration = 0.0005f;	//How fast the player object responds to swiping
 	public float maxSpeed = 0.015f;		//Fastest possible move speed
 	public float slowDown = 0.99f;		//Multiplied by movement speed every step to make smooth movement
-	
-	void Start () {
+
+    [SyncVar]
+    public bool canBeTagged = true;
+    //private Material defaultMaterial;
+    //public Material taggedItMaterial;
+
+    void Start () {
 		radius = 0.55f;
 		
 		//Get a reference to the ball
@@ -76,4 +81,38 @@ public class Control : NetworkBehaviour {
 		//Snap back to sphere's surface
 		transform.position = transform.position.normalized*radius;
 	}
+
+    public bool CanBeTagged()
+    {
+        return canBeTagged;
+    }
+
+    [ClientRpc]
+    public void RpcInvulnerable()
+    {
+        Debug.Log("Can't touch this");
+        canBeTagged = false;
+        GetComponent<MeshRenderer>().material.color = Color.cyan;
+    }
+
+    [ClientRpc]
+    public void RpcCanBeTagged(float cooldown)
+    {
+        Invoke("SetCanBeTagged", cooldown);
+    }
+
+    [ClientRpc]
+    public void RpcChangeToIt()
+    {
+        //Material taggedItMaterial = Resources.Load("Materials/Materials/TaggedIt.mat", typeof(Material)) as Material;
+        //GetComponent<MeshRenderer>().material = taggedItMaterial;
+        GetComponent<MeshRenderer>().material.color = Color.red;
+    }
+
+    void SetCanBeTagged()
+    {
+        Debug.Log("Free Game");
+        canBeTagged = true;
+        GetComponent<MeshRenderer>().material.color = Color.white;
+    }
 }
