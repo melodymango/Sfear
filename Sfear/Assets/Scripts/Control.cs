@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Control : MonoBehaviour {
+public class Control : NetworkBehaviour {
 	private GameObject ball;			//Reference to the Sfear
 	private Vector3 relativePosition;	//Position of this player relative to the center of the Sfear
 	private float radius;				//Radius of ball PLUS half height of capsule
@@ -27,11 +28,11 @@ public class Control : MonoBehaviour {
 	}
 	
 	void Update () {
-		/*
+	
 		if(!isLocalPlayer){
 			return;
 		}
-		*/
+		
 		
 		//Slow down gradually
 		hspeed *= slowDown;
