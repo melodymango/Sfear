@@ -82,10 +82,6 @@ public class Control : NetworkBehaviour {
 	
 	bool Move(float h, float v)
     {
-        //Booleans that will allow player to move in X and/or Y direction
-        bool canMoveX = true;
-        bool canMoveY = true;
-
         //Save initial x & y position
         float initialX = transform.position.x;
         float initialY = transform.position.y;
@@ -100,42 +96,26 @@ public class Control : NetworkBehaviour {
         if (hitColliders.Length >= 1)
         {
             //Debug.Log("Number of Colliders hit: " + hitColliders.Length);
-            /*
-            //Check separately if x coordinate is inside each collider or not.
-            //DOES NOT WORK IT DOES VERY WEIRD THINGS
-            for (int i = 0; i < hitColliders.Length; i++)
-            {
-                if (hitColliders[i].bounds.Contains(new Vector3(transform.position.x, 500f, transform.position.z)))
-                {
-                    canMoveX = false;
-                    break;
-                }
-            }
-            //Check separately if y coordinate is inside each collider or not.
-            //DOES NOT WORK IT DOES VERY WEIRD THINGS
-            for (int i = 0; i < hitColliders.Length; i++)
-            {
-                if (hitColliders[i].bounds.Contains(new Vector3(500f, transform.position.y, transform.position.z)))
-                {
-                    canMoveY = false;
-                    break;
-                }
-            }*/
 
             //reset position to initial position
             transform.position = new Vector3(initialX, initialY, initialZ);
-            
-            /*
-            //Only one of these if statements should actually execute
-            if(canMoveX)
+
+            //check to see if we can move at least in the x direction
+            transform.position += Camera.main.transform.right * h;
+            hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
+            if (hitColliders.Length >= 1)
             {
-                transform.position += Camera.main.transform.right * h;
+                transform.position = new Vector3(initialX, initialY, initialZ);
+
             }
-            if(canMoveY)
+
+            //check to see if we can move at least in the y direction
+            transform.position += Camera.main.transform.up * v;
+            hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
+            if (hitColliders.Length >= 1)
             {
-                transform.position += Camera.main.transform.up * v;
+                transform.position = new Vector3(initialX, initialY, initialZ);
             }
-            */
             return false;
         }
         else
