@@ -62,35 +62,92 @@ public class Control : NetworkBehaviour {
             }
 
             //Move
-            Move(hspeed, vspeed);
+            if(Move(hspeed, vspeed))
+            {
+                //Find relative position to sphere's center
+                relativePosition = transform.position - ball.transform.position;
 
-            //Find relative position to sphere's center
-            relativePosition = transform.position - ball.transform.position;
+                //Move camera to be above self, relative to the ball
+                Camera.main.transform.position = transform.position + relativePosition;
 
-            //Move camera to be above self, relative to the ball
-            Camera.main.transform.position = transform.position + relativePosition;
+                //Look down towards sphere
+                Camera.main.transform.LookAt(ball.transform, Camera.main.transform.up);
 
-            //Look down towards sphere
-            Camera.main.transform.LookAt(ball.transform, Camera.main.transform.up);
-
-            //Rotate player model accordingly
-            transform.rotation = Camera.main.transform.rotation;
-            transform.Rotate(90, 0, 0);
+                //Rotate player model accordingly
+                transform.rotation = Camera.main.transform.rotation;
+                transform.Rotate(90, 0, 0);
+            }
         }
 	}
 	
-	void Move(float h, float v){
-		//Move in a tangent line (Because camera plane is tangent to sphere)
-		transform.position += Camera.main.transform.right*h;
+	bool Move(float h, float v)
+    {
+        //Booleans that will allow player to move in X and/or Y direction
+        bool canMoveX = true;
+        bool canMoveY = true;
+
+        //Save initial x & y position
+        float initialX = transform.position.x;
+        float initialY = transform.position.y;
+        float initialZ = transform.position.z;
+
+        //Move in a tangent line (Because camera plane is tangent to sphere)
+        transform.position += Camera.main.transform.right*h;
 		transform.position += Camera.main.transform.up*v;
-		
-		//Snap back to sphere's surface
-		transform.position = transform.position.normalized*radius;
+
+        //Get all colliders the player is in contact with, IGNORING TRIGGERS
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
+        if (hitColliders.Length >= 1)
+        {
+            //Debug.Log("Number of Colliders hit: " + hitColliders.Length);
+            /*
+            //Check separately if x coordinate is inside each collider or not.
+            //DOES NOT WORK IT DOES VERY WEIRD THINGS
+            for (int i = 0; i < hitColliders.Length; i++)
+            {
+                if (hitColliders[i].bounds.Contains(new Vector3(transform.position.x, 500f, transform.position.z)))
+                {
+                    canMoveX = false;
+                    break;
+                }
+            }
+            //Check separately if y coordinate is inside each collider or not.
+            //DOES NOT WORK IT DOES VERY WEIRD THINGS
+            for (int i = 0; i < hitColliders.Length; i++)
+            {
+                if (hitColliders[i].bounds.Contains(new Vector3(500f, transform.position.y, transform.position.z)))
+                {
+                    canMoveY = false;
+                    break;
+                }
+            }*/
+
+            //reset position to initial position
+            transform.position = new Vector3(initialX, initialY, initialZ);
+            
+            /*
+            //Only one of these if statements should actually execute
+            if(canMoveX)
+            {
+                transform.position += Camera.main.transform.right * h;
+            }
+            if(canMoveY)
+            {
+                transform.position += Camera.main.transform.up * v;
+            }
+            */
+            return false;
+        }
+        else
+        {
+            //Snap back to sphere's surface
+            transform.position = transform.position.normalized * radius;
+            return true;
+        }
 	}
 
-    public bool CanBeTagged()
-    {
-        return canBeTagged;
+    public bool CanBeTagged() {
+            return canBeTagged;
     }
 
     [ClientRpc]
