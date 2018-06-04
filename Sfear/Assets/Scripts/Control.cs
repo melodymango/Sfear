@@ -80,12 +80,15 @@ public class Control : NetworkBehaviour {
         }
 	}
 	
-	bool Move(float h, float v)
-    {
-        //Save initial x & y position
+	bool Move(float h, float v){
+        float increment = 0.175f;
+		
+		//Save initial x & y position
         float initialX = transform.position.x;
         float initialY = transform.position.y;
         float initialZ = transform.position.z;
+		
+		Vector3 resetVector = new Vector3(initialX, initialY, initialZ);
 
         //Move in a tangent line (Because camera plane is tangent to sphere)
         transform.position += Camera.main.transform.right*h;
@@ -93,18 +96,62 @@ public class Control : NetworkBehaviour {
 
         //Get all colliders the player is in contact with, IGNORING TRIGGERS
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
-        if (hitColliders.Length >= 1)
-        {
-            //Debug.Log("Number of Colliders hit: " + hitColliders.Length);
+        if (hitColliders.Length >= 1){
+			//Debug.Log("Number of Colliders hit: " + hitColliders.Length);
 
             //reset position to initial position
-            transform.position = new Vector3(initialX, initialY, initialZ);
-
+            transform.position = resetVector;
+			
+			//Get attempted move angle and speed
+			float moveDir = Mathf.Atan2(v,h);
+			float moveSpeed = new Vector2(h,v).magnitude;
+			
+			//Check for nearest free spot by checking angles outwards, up to 80 degrees to the side
+			for(int i = 1; i < 9; i++){
+				//Used to prevent people from speed boosting off of walls
+				float friction = 1.0f/i;
+				
+				//Check in positive direction
+				float newAngle = increment*i + moveDir;
+				float newH = Mathf.Cos(newAngle)*moveSpeed;
+				float newV = Mathf.Sin(newAngle)*moveSpeed;
+				transform.position += Camera.main.transform.right*newH;
+				transform.position += Camera.main.transform.up*newV;
+				hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
+				if (hitColliders.Length >= 1){
+					transform.position = resetVector;
+				}
+				else{
+					transform.position = transform.position.normalized * radius;
+					hspeed = newH*friction;
+					vspeed = newV*friction;
+					return true;
+				}
+				
+				//Check in negative direction
+				newAngle = -increment*i + moveDir;
+				newH = Mathf.Cos(newAngle)*moveSpeed;
+				newV = Mathf.Sin(newAngle)*moveSpeed;
+				transform.position += Camera.main.transform.right*newH;
+				transform.position += Camera.main.transform.up*newV;
+				hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
+				if (hitColliders.Length >= 1){
+					transform.position = resetVector;
+				}
+				else{
+					transform.position = transform.position.normalized * radius;
+					hspeed = newH*friction;
+					vspeed = newV*friction;
+					return true;
+				}
+			}
+			
+			return false;
+			/*
             //check to see if we can move at least in the x direction
             transform.position += Camera.main.transform.right * h;
             hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
-            if (hitColliders.Length >= 1)
-            {
+            if (hitColliders.Length >= 1){
                 transform.position = new Vector3(initialX, initialY, initialZ);
 
             }
@@ -112,14 +159,12 @@ public class Control : NetworkBehaviour {
             //check to see if we can move at least in the y direction
             transform.position += Camera.main.transform.up * v;
             hitColliders = Physics.OverlapSphere(transform.position, 0.04f, ~0, QueryTriggerInteraction.Ignore);
-            if (hitColliders.Length >= 1)
-            {
+            if (hitColliders.Length >= 1){
                 transform.position = new Vector3(initialX, initialY, initialZ);
             }
-            return false;
+			*/
         }
-        else
-        {
+        else{
             //Snap back to sphere's surface
             transform.position = transform.position.normalized * radius;
             return true;
