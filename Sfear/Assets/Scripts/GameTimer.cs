@@ -48,6 +48,8 @@ public class GameTimer : NetworkBehaviour
                 }
             }
         }
+
+        GetComponent<Control>().SetCanMove(false);
     }
 
     void Update()
@@ -55,8 +57,6 @@ public class GameTimer : NetworkBehaviour
         //Debug.Log("Round has started: " + roundHasStarted + "for player " + GetComponent<PlayerResources>().GetId());
         if (!roundHasStarted)
         {
-            GetComponent<Control>().SetCanMove(false);
-
             if (timer < 0)
             {
                 Debug.Log("Round is starting.");

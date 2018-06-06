@@ -9,7 +9,7 @@ public class Control : NetworkBehaviour {
 	private float radius;				//Radius of ball PLUS half height of capsule
 	private float hspeed, vspeed;		//Horizontal and vertical speed (relative to camera plane)
     [SyncVar]
-    private bool canMove = true;
+    public bool canMove = false;
 
     //Public variables
     public float acceleration = 0.0005f;	//How fast the player object responds to swiping
@@ -172,7 +172,7 @@ public class Control : NetworkBehaviour {
 	}
 
     public bool CanBeTagged() {
-            return canBeTagged;
+        return canBeTagged;
     }
 
     [ClientRpc]
@@ -205,6 +205,12 @@ public class Control : NetworkBehaviour {
     }
 
     public void SetCanMove(bool b)
+    {
+        canMove = b;
+    }
+
+    [ClientRpc]
+    public void RpcSetCanMove(bool b)
     {
         canMove = b;
     }

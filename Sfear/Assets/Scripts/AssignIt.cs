@@ -42,7 +42,19 @@ public class AssignIt : NetworkBehaviour {
 
         itObject.transform.SetParent(players[i].transform, false);
         playerIt = players[i];
-        //playerIt.GetComponent<MeshRenderer>().material = taggedItMaterial;
+
+        foreach (GameObject p in players)
+        {
+            if (p == playerIt)
+                p.GetComponent<Control>().RpcSetCanMove(false);
+            else
+            {
+                p.GetComponent<Control>().RpcSetCanMove(true);
+                p.GetComponent<Control>().RpcInvulnerable();
+                p.GetComponent<Control>().RpcCanBeTagged(cooldown);
+            }
+        }
+
         playerIt.GetComponent<Control>().RpcChangeToIt();
     }
 
