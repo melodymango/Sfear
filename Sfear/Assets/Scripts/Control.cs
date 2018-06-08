@@ -22,7 +22,7 @@ public class Control : NetworkBehaviour {
     //public Material taggedItMaterial;
 
     void Start () {
-		radius = 0.55f;
+		radius = 0.80f;
 		
 		//Get a reference to the ball
 		ball = GameObject.FindWithTag("Ball"); 
