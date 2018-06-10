@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class Control : NetworkBehaviour {
 	private GameObject ball;			//Reference to the Sfear
@@ -9,26 +10,41 @@ public class Control : NetworkBehaviour {
 	private float radius;				//Radius of ball PLUS half height of capsule
 	private float hspeed, vspeed;       //Horizontal and vertical speed (relative to camera plane)
     private int tapCount = 0;           //How many times the user has clicked (this is to keep track of double-clicking)
+    [SyncVar]
     private float doubleTapTimer = 0;   //Keeps track of how long between clicks
+    [SyncVar]
+    private float invisibleTimer = 0;   //Keeps track of how long the player has been invisible
+    [SyncVar]
+    private float invisibilityCooldownTimer = 0;
 
     //Public variables
     public float acceleration = 0.0005f;	    //How fast the player object responds to swiping
 	public float maxSpeed = 0.015f;		        //Fastest possible move speed
 	public float slowDown = 0.99f;		        //Multiplied by movement speed every step to make smooth movement
     public float  invisibilityDuration = 3.0f;  //How long the player can set themselves as invisible
+    public float invisibilityCooldown = 6.0f;   //How long until the player can set themselves as invisible
 
-    //SyncVars
+    public Text invisibilityTimerText;
+
     [SyncVar]
     public bool canBeTagged = true;
     [SyncVar]
     public bool canMove = false;
     [SyncVar]
     public bool isInvisible = false;
+    [SyncVar]
+    public bool canBeInvisible = true;
+    [SyncVar]
+    public bool isIt = false;
     //private Material defaultMaterial;
     //public Material taggedItMaterial;
 
     void Start () {
-		radius = 0.80f;
+
+        invisibleTimer = invisibilityDuration;
+        invisibilityCooldownTimer = invisibilityCooldown;
+
+        radius = 0.80f;
 		
 		//Get a reference to the ball
 		ball = GameObject.FindWithTag("Ball"); 
@@ -67,29 +83,6 @@ public class Control : NetworkBehaviour {
                 vspeed = Mathf.Clamp(vspeed, -maxSpeed, maxSpeed);
             }
 
-            //Double-tapping for invisibility!
-            
-            if (Input.GetMouseButtonDown(0))
-            {
-                tapCount++;
-            }
-            if (tapCount > 0)
-            {
-                doubleTapTimer += Time.deltaTime;
-            }
-            if (tapCount >= 2 && transform.Find("TaggedIt") != null)
-            {
-                CmdSetInvisibility();
-                Debug.Log("Double-tapped.");
-                doubleTapTimer = 0.0f;
-                tapCount = 0;
-            }
-            if (doubleTapTimer > 0.3f)
-            {
-                doubleTapTimer = 0f;
-                tapCount = 0;
-            }
-
             //Move
             if (Move(hspeed, vspeed))
             {
@@ -106,6 +99,75 @@ public class Control : NetworkBehaviour {
                 transform.rotation = Camera.main.transform.rotation;
                 transform.Rotate(-90, 0, 0);
             }
+
+            
+            if (isIt)
+            {
+                //Double-tapping for invisibility!
+                if (Input.GetMouseButtonDown(0))
+                {
+                    tapCount++;
+                }
+                if (tapCount > 0)
+                {
+                    doubleTapTimer += Time.deltaTime;
+                }
+                if (tapCount >= 2 && canBeInvisible)
+                {
+                    CmdSetInvisibile(true);
+                    Debug.Log("Double-tapped.");
+                    doubleTapTimer = 0.0f;
+                    tapCount = 0;
+                    //start cooldown timer
+                    invisibilityCooldownTimer -= Time.deltaTime;
+                }
+                if (doubleTapTimer > 0.3f)
+                {
+                    doubleTapTimer = 0f;
+                    tapCount = 0;
+                }
+
+                //If invisible, check to see if the player's invisibility duration is over
+                if (isInvisible)
+                {
+                    invisibleTimer -= Time.deltaTime;
+                    invisibilityTimerText.text = "Invisible for: " + Mathf.Ceil(invisibleTimer);
+
+                    if (invisibleTimer < 0)
+                    {
+                        CmdSetInvisibile(false);
+                        invisibleTimer = invisibilityDuration;
+                    }
+                }
+                //Display invisibility cooldown timer
+                if (!canBeInvisible)
+                {
+                    invisibilityCooldownTimer -= Time.deltaTime;
+                    if (!isInvisible)
+                    {
+                        invisibilityTimerText.text = "Able to be invisible in: " + Mathf.Ceil(invisibilityCooldownTimer);
+                    }
+                }
+                else
+                {
+                    if (!isInvisible)
+                    {
+                        invisibilityTimerText.text = "Able to be invisible in: 0";
+                    }
+                }
+                //check to see if player can become invisible again
+                if (invisibilityCooldownTimer < 0)
+                {
+                    canBeInvisible = true;
+                    invisibilityCooldownTimer = invisibilityCooldown;
+                }
+            }
+        }
+
+        if(!isIt)
+        {
+            CmdSetInvisibile(false);
+            invisibilityTimerText.text = "RUN!!!";
         }
 	}
 	
@@ -210,6 +272,7 @@ public class Control : NetworkBehaviour {
         Debug.Log("Can't touch this");
         canBeTagged = false;
         GetComponent<MeshRenderer>().material.color = Color.cyan;
+        isIt = false;
     }
 
     [ClientRpc]
@@ -224,28 +287,23 @@ public class Control : NetworkBehaviour {
         //Material taggedItMaterial = Resources.Load("Materials/Materials/TaggedIt.mat", typeof(Material)) as Material;
         //GetComponent<MeshRenderer>().material = taggedItMaterial;
         GetComponent<MeshRenderer>().material.color = Color.red;
-    }
-
-    [Command]
-    public void CmdSetInvisibility()
-    {
-        isInvisible = true;
-        Debug.Log("Player is invisible: " + isInvisible);
-        GetComponent<MeshRenderer>().enabled = false;
-    }
-
-    [ClientRpc]
-    public void RpcSetInvisibility()
-    {
-        SetInvisiblity();
+        isIt = true;
     }
 
     //Sets the player as invisible
-    void SetInvisiblity()
+    [Command]
+    void CmdSetInvisibile(bool b)
     {
-        isInvisible = true;
+        RpcSetInvisibile(b);
+    }
+
+    [ClientRpc]
+    void RpcSetInvisibile(bool b)
+    {
+        isInvisible = b;
         Debug.Log("Player is invisible: " + isInvisible);
-        GetComponent<MeshRenderer>().enabled = false;
+        GetComponent<MeshRenderer>().enabled = !b;
+        canBeInvisible = false;
     }
 
     void SetCanBeTagged()

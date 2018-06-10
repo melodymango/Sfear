@@ -29,8 +29,8 @@ public class AssignIt : NetworkBehaviour {
 
     // Update is called once per frame
     void Update () {
-		
-	}
+
+    }
 
     //Assign "It" status to a random player 
     void AssignItToPlayer()
