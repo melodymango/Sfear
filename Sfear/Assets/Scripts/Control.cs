@@ -7,17 +7,23 @@ public class Control : NetworkBehaviour {
 	private GameObject ball;			//Reference to the Sfear
 	private Vector3 relativePosition;	//Position of this player relative to the center of the Sfear
 	private float radius;				//Radius of ball PLUS half height of capsule
-	private float hspeed, vspeed;		//Horizontal and vertical speed (relative to camera plane)
-    [SyncVar]
-    public bool canMove = false;
+	private float hspeed, vspeed;       //Horizontal and vertical speed (relative to camera plane)
+    private int tapCount = 0;           //How many times the user has clicked (this is to keep track of double-clicking)
+    private float doubleTapTimer = 0;   //Keeps track of how long between clicks
 
     //Public variables
-    public float acceleration = 0.0005f;	//How fast the player object responds to swiping
-	public float maxSpeed = 0.015f;		//Fastest possible move speed
-	public float slowDown = 0.99f;		//Multiplied by movement speed every step to make smooth movement
+    public float acceleration = 0.0005f;	    //How fast the player object responds to swiping
+	public float maxSpeed = 0.015f;		        //Fastest possible move speed
+	public float slowDown = 0.99f;		        //Multiplied by movement speed every step to make smooth movement
+    public float  invisibilityDuration = 3.0f;  //How long the player can set themselves as invisible
 
+    //SyncVars
     [SyncVar]
     public bool canBeTagged = true;
+    [SyncVar]
+    public bool canMove = false;
+    [SyncVar]
+    public bool isInvisible = false;
     //private Material defaultMaterial;
     //public Material taggedItMaterial;
 
@@ -61,8 +67,31 @@ public class Control : NetworkBehaviour {
                 vspeed = Mathf.Clamp(vspeed, -maxSpeed, maxSpeed);
             }
 
+            //Double-tapping for invisibility!
+            
+            if (Input.GetMouseButtonDown(0))
+            {
+                tapCount++;
+            }
+            if (tapCount > 0)
+            {
+                doubleTapTimer += Time.deltaTime;
+            }
+            if (tapCount >= 2 && transform.Find("TaggedIt") != null)
+            {
+                CmdSetInvisibility();
+                Debug.Log("Double-tapped.");
+                doubleTapTimer = 0.0f;
+                tapCount = 0;
+            }
+            if (doubleTapTimer > 0.3f)
+            {
+                doubleTapTimer = 0f;
+                tapCount = 0;
+            }
+
             //Move
-            if(Move(hspeed, vspeed))
+            if (Move(hspeed, vspeed))
             {
                 //Find relative position to sphere's center
                 relativePosition = transform.position - ball.transform.position;
@@ -195,6 +224,28 @@ public class Control : NetworkBehaviour {
         //Material taggedItMaterial = Resources.Load("Materials/Materials/TaggedIt.mat", typeof(Material)) as Material;
         //GetComponent<MeshRenderer>().material = taggedItMaterial;
         GetComponent<MeshRenderer>().material.color = Color.red;
+    }
+
+    [Command]
+    public void CmdSetInvisibility()
+    {
+        isInvisible = true;
+        Debug.Log("Player is invisible: " + isInvisible);
+        GetComponent<MeshRenderer>().enabled = false;
+    }
+
+    [ClientRpc]
+    public void RpcSetInvisibility()
+    {
+        SetInvisiblity();
+    }
+
+    //Sets the player as invisible
+    void SetInvisiblity()
+    {
+        isInvisible = true;
+        Debug.Log("Player is invisible: " + isInvisible);
+        GetComponent<MeshRenderer>().enabled = false;
     }
 
     void SetCanBeTagged()
