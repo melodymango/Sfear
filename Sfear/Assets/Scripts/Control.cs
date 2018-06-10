@@ -36,11 +36,12 @@ public class Control : NetworkBehaviour {
     public bool canBeInvisible = true;
     [SyncVar]
     public bool isIt = false;
-    //private Material defaultMaterial;
-    //public Material taggedItMaterial;
+	private bool red = false;
+    public Material defaultMaterial;
+    public Material taggedItMaterial;
+	public GameObject playerModel;
 
     void Start () {
-
         invisibleTimer = invisibilityDuration;
         invisibilityCooldownTimer = invisibilityCooldown;
 
@@ -57,7 +58,15 @@ public class Control : NetworkBehaviour {
 	}
 	
 	void Update () {
-	
+		if(!red && isIt){
+			playerModel.GetComponent<MeshRenderer>().material = taggedItMaterial;
+			red = true;
+		}
+		else if(red && !isIt){
+			playerModel.GetComponent<MeshRenderer>().material = defaultMaterial;
+			red = false;
+		}
+		
 		if(!isLocalPlayer){
 			return;
 		}
@@ -271,7 +280,7 @@ public class Control : NetworkBehaviour {
     {
         Debug.Log("Can't touch this");
         canBeTagged = false;
-        GetComponent<MeshRenderer>().material.color = Color.cyan;
+        //GetComponent<MeshRenderer>().material.color = Color.cyan;
         isIt = false;
     }
 
@@ -286,7 +295,7 @@ public class Control : NetworkBehaviour {
     {
         //Material taggedItMaterial = Resources.Load("Materials/Materials/TaggedIt.mat", typeof(Material)) as Material;
         //GetComponent<MeshRenderer>().material = taggedItMaterial;
-        GetComponent<MeshRenderer>().material.color = Color.red;
+        //GetComponent<MeshRenderer>().material.color = Color.red;
         isIt = true;
     }
 
@@ -302,7 +311,7 @@ public class Control : NetworkBehaviour {
     {
         isInvisible = b;
         Debug.Log("Player is invisible: " + isInvisible);
-        GetComponent<MeshRenderer>().enabled = !b;
+        playerModel.GetComponent<MeshRenderer>().enabled = !b;
         canBeInvisible = false;
     }
 
@@ -310,7 +319,7 @@ public class Control : NetworkBehaviour {
     {
         Debug.Log("Free Game");
         canBeTagged = true;
-        GetComponent<MeshRenderer>().material.color = Color.white;
+       //GetComponent<MeshRenderer>().material.color = Color.white;
     }
 
     public void SetCanMove(bool b)
