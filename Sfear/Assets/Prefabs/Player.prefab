@@ -263,7 +263,7 @@ MonoBehaviour:
   slowDown: 0.99
   invisibilityDuration: 3
   invisibilityCooldown: 6
-  invisibilityTimerText: {fileID: 0}
+  invisibilityTimerText: {fileID: 114095161209908830}
   canBeTagged: 1
   canMove: 1
   isInvisible: 0
