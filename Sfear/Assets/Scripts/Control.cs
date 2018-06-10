@@ -75,7 +75,7 @@ public class Control : NetworkBehaviour {
 
                 //Rotate player model accordingly
                 transform.rotation = Camera.main.transform.rotation;
-                transform.Rotate(90, 0, 0);
+                transform.Rotate(-90, 0, 0);
             }
         }
 	}
