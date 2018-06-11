@@ -9,7 +9,8 @@ public class Control : NetworkBehaviour {
 	private Vector3 relativePosition;	//Position of this player relative to the center of the Sfear
 	private float radius;				//Radius of ball PLUS half height of capsule
 	private float hspeed, vspeed;       //Horizontal and vertical speed (relative to camera plane)
-    private int tapCount = 0;           //How many times the user has clicked (this is to keep track of double-clicking)
+    private float directionFacing = -90;
+	private int tapCount = 0;           //How many times the user has clicked (this is to keep track of double-clicking)
     [SyncVar]
     private float doubleTapTimer = 0;   //Keeps track of how long between clicks
     [SyncVar]
@@ -37,12 +38,17 @@ public class Control : NetworkBehaviour {
     [SyncVar]
     public bool isIt = false;
 	private bool red = false;
+	private float invulnCooldown = 0;
     public Material defaultMaterial;
     public Material taggedItMaterial;
+	public Material invulnMaterial;
 	public GameObject playerModel;
+	
+	private int TEST;
 
     void Start () {
-        invisibleTimer = invisibilityDuration;
+		TEST = 0;
+		invisibleTimer = invisibilityDuration;
         invisibilityCooldownTimer = invisibilityCooldown;
 
         radius = 0.80f;
@@ -63,7 +69,8 @@ public class Control : NetworkBehaviour {
 			red = true;
 		}
 		else if(red && !isIt){
-			playerModel.GetComponent<MeshRenderer>().material = defaultMaterial;
+			playerModel.GetComponent<MeshRenderer>().material = invulnMaterial;
+			Invoke("ChangeToWhite", invulnCooldown);
 			red = false;
 		}
 		
@@ -107,6 +114,8 @@ public class Control : NetworkBehaviour {
                 //Rotate player model accordingly
                 transform.rotation = Camera.main.transform.rotation;
                 transform.Rotate(-90, 0, 0);
+				transform.Rotate(0, -Mathf.Rad2Deg*directionFacing+90, 0);
+				TEST++;
             }
 
             
@@ -224,7 +233,8 @@ public class Control : NetworkBehaviour {
 				else{
 					transform.position = transform.position.normalized * radius;
 					hspeed = newH*friction;
-					vspeed = newV*friction;
+					vspeed = newV*friction;					
+					directionFacing = newAngle;
 					return true;
 				}
 				
@@ -242,6 +252,7 @@ public class Control : NetworkBehaviour {
 					transform.position = transform.position.normalized * radius;
 					hspeed = newH*friction;
 					vspeed = newV*friction;
+					directionFacing = newAngle;
 					return true;
 				}
 			}
@@ -267,6 +278,7 @@ public class Control : NetworkBehaviour {
         else{
             //Snap back to sphere's surface
             transform.position = transform.position.normalized * radius;
+			directionFacing = Mathf.Atan2(v,h);
             return true;
         }
 	}
@@ -274,6 +286,12 @@ public class Control : NetworkBehaviour {
     public bool CanBeTagged() {
         return canBeTagged;
     }
+	
+	public void ChangeToWhite(){
+		if(!red && !isIt){
+			playerModel.GetComponent<MeshRenderer>().material = defaultMaterial;
+		}
+	}
 
     [ClientRpc]
     public void RpcInvulnerable()
@@ -298,6 +316,11 @@ public class Control : NetworkBehaviour {
         //GetComponent<MeshRenderer>().material.color = Color.red;
         isIt = true;
     }
+	
+	[ClientRpc]
+	public void RpcSetCooldown(float cooldown){
+		invulnCooldown = cooldown;
+	}
 
     //Sets the player as invisible
     [Command]

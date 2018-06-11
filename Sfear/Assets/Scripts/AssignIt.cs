@@ -46,12 +46,16 @@ public class AssignIt : NetworkBehaviour {
         foreach (GameObject p in players)
         {
             if (p == playerIt)
+			{
                 p.GetComponent<Control>().RpcSetCanMove(false);
+				p.GetComponent<Control>().RpcSetCooldown(cooldown);
+			}
             else
             {
                 p.GetComponent<Control>().RpcSetCanMove(true);
                 p.GetComponent<Control>().RpcInvulnerable();
                 p.GetComponent<Control>().RpcCanBeTagged(cooldown);
+				p.GetComponent<Control>().RpcSetCooldown(cooldown);
             }
         }
 
