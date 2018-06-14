@@ -8,6 +8,7 @@ public class EndDisplay : NetworkBehaviour {
 
     public GameObject[] players;
     public Button exitToLobby;
+    public Text resultsText;
     public float time; //Grabs time
     public bool isGamePlaying; //Boolean for if playtime is active
     public bool gameCreated; //And extra bool because GameTimer.roundHasStarted doesn't go back to false due to spaghetti code
@@ -29,10 +30,25 @@ public class EndDisplay : NetworkBehaviour {
 
     void OnGUI()
     {
+        if (!isLocalPlayer)
+            return;
+
+        players = GameObject.FindGameObjectsWithTag("Player");
+
         if (time <= 0 && isGamePlaying && !gameCreated)
         {
             //In here will be where the canvas will pop up and display the result screen
             exitToLobby.gameObject.SetActive(true);
+
+            resultsText.text = "Final Scores\nPlayer Id / Total Time Spent Cursed\n";
+
+            foreach (GameObject player in players)
+            {
+                if (player.GetComponent<Control>().GetId() == GetComponent<Control>().GetId())
+                    resultsText.text += ("(YOU) Player " + player.GetComponent<Control>().GetId() + " / " + System.Math.Round(player.GetComponent<Control>().GetTimeWasIt(), 2) + " seconds\n");
+                else
+                    resultsText.text += ("Player " + player.GetComponent<Control>().GetId() + " / " + System.Math.Round(player.GetComponent<Control>().GetTimeWasIt(), 2) + " seconds\n");
+            }
         }
     }
 

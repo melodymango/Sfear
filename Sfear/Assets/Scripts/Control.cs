@@ -17,6 +17,10 @@ public class Control : NetworkBehaviour {
     private float invisibleTimer = 0;   //Keeps track of how long the player has been invisible
     [SyncVar]
     private float invisibilityCooldownTimer = 0;
+    [SyncVar]
+    private float timeWasIt = 0f;       //Keeps track of the total duration the player was "it"
+    [SyncVar]
+    private int id = -1;
 
     //Public variables
     public float acceleration = 0.0005f;	    //How fast the player object responds to swiping
@@ -73,13 +77,22 @@ public class Control : NetworkBehaviour {
 			Invoke("ChangeToWhite", invulnCooldown);
 			red = false;
 		}
-		
-		if(!isLocalPlayer){
+
+        if (!isLocalPlayer){
 			return;
 		}
 
-        if (canMove)
-        {
+        //Set pre-round text, notifying player if they're it or not
+        if (!GetComponent<GameTimer>().roundHasStarted) {
+            if (isIt) {
+                invisibilityTimerText.text = "You're it!";
+            }
+            else {
+                invisibilityTimerText.text = "RUN!!!";
+            }
+        }
+
+        if (canMove) {
             //Used to keep old settings while making movement framerate-independent
             //float dT = Time.deltaTime*60;
 
@@ -88,8 +101,7 @@ public class Control : NetworkBehaviour {
             vspeed *= slowDown/**dT*/;
 
             //If user's finger is held down, calculate move speed.
-            if (Input.GetAxis("Tap") == 1)
-            {
+            if (Input.GetAxis("Tap") == 1) {
                 //add mouse movement to this player's speed
                 hspeed -= Input.GetAxis("Mouse X") * acceleration/**dT*/;
                 vspeed -= Input.GetAxis("Mouse Y") * acceleration/*dT*/;
@@ -100,8 +112,7 @@ public class Control : NetworkBehaviour {
             }
 
             //Move
-            if (Move(hspeed, vspeed))
-            {
+            if (Move(hspeed, vspeed)) {
                 //Find relative position to sphere's center
                 relativePosition = transform.position - ball.transform.position;
 
@@ -119,19 +130,21 @@ public class Control : NetworkBehaviour {
             }
 
             
-            if (isIt)
-            {
+            if (isIt) {
+                //test
+                invisibilityTimerText.text = "You're it!";
+
+                //Add on to the total time the player is it
+                timeWasIt += Time.deltaTime;
+
                 //Double-tapping for invisibility!
-                if (Input.GetMouseButtonDown(0))
-                {
+                if (Input.GetMouseButtonDown(0)) {
                     tapCount++;
                 }
-                if (tapCount > 0)
-                {
+                if (tapCount > 0) {
                     doubleTapTimer += Time.deltaTime;
                 }
-                if (tapCount >= 2 && canBeInvisible)
-                {
+                if (tapCount >= 2 && canBeInvisible) {
                     CmdSetInvisibile(true);
                     Debug.Log("Double-tapped.");
                     doubleTapTimer = 0.0f;
@@ -139,53 +152,44 @@ public class Control : NetworkBehaviour {
                     //start cooldown timer
                     invisibilityCooldownTimer -= Time.deltaTime;
                 }
-                if (doubleTapTimer > 0.3f)
-                {
+                if (doubleTapTimer > 0.3f) {
                     doubleTapTimer = 0f;
                     tapCount = 0;
                 }
 
                 //If invisible, check to see if the player's invisibility duration is over
-                if (isInvisible)
-                {
+                if (isInvisible) {
                     invisibleTimer -= Time.deltaTime;
                     invisibilityTimerText.text = "Invisible for: " + Mathf.Ceil(invisibleTimer);
 
-                    if (invisibleTimer < 0)
-                    {
+                    if (invisibleTimer < 0) {
                         CmdSetInvisibile(false);
                         invisibleTimer = invisibilityDuration;
                     }
                 }
                 //Display invisibility cooldown timer
-                if (!canBeInvisible)
-                {
+                if (!canBeInvisible) {
                     invisibilityCooldownTimer -= Time.deltaTime;
-                    if (!isInvisible)
-                    {
+                    if (!isInvisible) {
                         invisibilityTimerText.text = "Able to be invisible in: " + Mathf.Ceil(invisibilityCooldownTimer);
                     }
                 }
-                else
-                {
-                    if (!isInvisible)
-                    {
+                else {
+                    if (!isInvisible) {
                         invisibilityTimerText.text = "Able to be invisible in: 0";
                     }
                 }
                 //check to see if player can become invisible again
-                if (invisibilityCooldownTimer < 0)
-                {
+                if (invisibilityCooldownTimer < 0) {
                     canBeInvisible = true;
                     invisibilityCooldownTimer = invisibilityCooldown;
                 }
             }
-        }
-
-        if(!isIt)
-        {
-            CmdSetInvisibile(false);
-            invisibilityTimerText.text = "RUN!!!";
+            else
+            {
+                CmdSetInvisibile(false);
+                invisibilityTimerText.text = "RUN!!!";
+            }
         }
 	}
 	
@@ -333,7 +337,7 @@ public class Control : NetworkBehaviour {
     void RpcSetInvisibile(bool b)
     {
         isInvisible = b;
-        Debug.Log("Player is invisible: " + isInvisible);
+        //Debug.Log("Player is invisible: " + isInvisible);
         playerModel.GetComponent<MeshRenderer>().enabled = !b;
         canBeInvisible = false;
     }
@@ -354,5 +358,23 @@ public class Control : NetworkBehaviour {
     public void RpcSetCanMove(bool b)
     {
         canMove = b;
+    }
+    
+    //Set player Id
+    public void SetId(int i)
+    {
+        id = i;
+    }
+
+    //Get player id
+    public int GetId()
+    {
+        return id;
+    }
+
+    //Get total time player was it
+    public float GetTimeWasIt()
+    {
+        return timeWasIt;
     }
 }
