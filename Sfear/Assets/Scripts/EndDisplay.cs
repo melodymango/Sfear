@@ -37,11 +37,11 @@ public class EndDisplay : NetworkBehaviour
         if (!isLocalPlayer)
             return;
 
-        players = GameObject.FindGameObjectsWithTag("Player");
-        Array.Sort(players, delegate (GameObject x, GameObject y) { return x.GetComponent<Control>().GetTimeWasIt().CompareTo(y.GetComponent<Control>().GetTimeWasIt()); });
-
         if (time <= 0 && isGamePlaying)
         {
+            players = GameObject.FindGameObjectsWithTag("Player");
+            Array.Sort(players, delegate (GameObject x, GameObject y) { return x.GetComponent<Control>().GetTimeWasIt().CompareTo(y.GetComponent<Control>().GetTimeWasIt()); });
+
             //In here will be where the canvas will pop up and display the result screen
             exitToLobby.gameObject.SetActive(true);
 
