@@ -41,16 +41,4 @@ public class AssignPlayerId : NetworkBehaviour {
         }
 
     }
-
-    public string CalculateFinalScore()
-    {
-        string result = "";
-        result += "Final Scores\nPlayer Id / Total Time Spent Cursed\n";
-        foreach (GameObject player in players)
-        {
-            result += ("Player " + player.GetComponent<Control>().GetId() + " / " + System.Math.Round(player.GetComponent<Control>().GetTimeWasIt(), 2) + " seconds\n");
-        }
-
-        return result;
-    }
 }
