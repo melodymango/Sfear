@@ -14,6 +14,14 @@ public class AssignPlayerId : NetworkBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        /*
+        if (players[0].GetComponent<GameTimer>().timer <= 0 && players[0].GetComponent<GameTimer>().roundHasStarted)
+        {
+            foreach (GameObject player in players)
+            {
+                player.GetComponent<EndDisplay>().RpcDisplayFinalScore(CalculateFinalScore());
+            }
+        }*/
 		
 	}
 
@@ -32,5 +40,17 @@ public class AssignPlayerId : NetworkBehaviour {
             Debug.Log(player.GetComponent<Control>().GetId() + " has joined the game.");
         }
 
+    }
+
+    public string CalculateFinalScore()
+    {
+        string result = "";
+        result += "Final Scores\nPlayer Id / Total Time Spent Cursed\n";
+        foreach (GameObject player in players)
+        {
+            result += ("Player " + player.GetComponent<Control>().GetId() + " / " + System.Math.Round(player.GetComponent<Control>().GetTimeWasIt(), 2) + " seconds\n");
+        }
+
+        return result;
     }
 }

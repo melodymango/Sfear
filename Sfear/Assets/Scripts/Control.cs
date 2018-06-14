@@ -135,7 +135,8 @@ public class Control : NetworkBehaviour {
                 invisibilityTimerText.text = "You're it!";
 
                 //Add on to the total time the player is it
-                timeWasIt += Time.deltaTime;
+                //timeWasIt += Time.deltaTime;
+                CmdUpdateTimeWasIt();
 
                 //Double-tapping for invisibility!
                 if (Input.GetMouseButtonDown(0)) {
@@ -376,5 +377,11 @@ public class Control : NetworkBehaviour {
     public float GetTimeWasIt()
     {
         return timeWasIt;
+    }
+
+    [Command]
+    void CmdUpdateTimeWasIt()
+    {
+        timeWasIt += Time.deltaTime;
     }
 }

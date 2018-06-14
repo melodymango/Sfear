@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using System;
 
 public class EndDisplay : NetworkBehaviour {
 
     public GameObject[] players;
     public Button exitToLobby;
     public Text resultsText;
+    public Text victoryText;
     public float time; //Grabs time
     public bool isGamePlaying; //Boolean for if playtime is active
     public bool gameCreated; //And extra bool because GameTimer.roundHasStarted doesn't go back to false due to spaghetti code
@@ -34,12 +36,14 @@ public class EndDisplay : NetworkBehaviour {
             return;
 
         players = GameObject.FindGameObjectsWithTag("Player");
+        Array.Sort(players, delegate (GameObject x, GameObject y) { return x.GetComponent<Control>().GetTimeWasIt().CompareTo(y.GetComponent<Control>().GetTimeWasIt()); });
 
         if (time <= 0 && isGamePlaying && !gameCreated)
         {
             //In here will be where the canvas will pop up and display the result screen
             exitToLobby.gameObject.SetActive(true);
-
+            
+            
             resultsText.text = "Final Scores\nPlayer Id / Total Time Spent Cursed\n";
 
             foreach (GameObject player in players)
@@ -49,6 +53,13 @@ public class EndDisplay : NetworkBehaviour {
                 else
                     resultsText.text += ("Player " + player.GetComponent<Control>().GetId() + " / " + System.Math.Round(player.GetComponent<Control>().GetTimeWasIt(), 2) + " seconds\n");
             }
+
+            if (GetComponent<Control>().GetId() == players[0].GetComponent<Control>().GetId())
+            {
+                victoryText.text = "You Win!";
+            }
+            else
+                victoryText.text = "You Lose...";
         }
     }
 
@@ -62,5 +73,11 @@ public class EndDisplay : NetworkBehaviour {
         {
             NetworkManager.singleton.StopClient();
         }
+    }
+
+    [ClientRpc]
+    public void RpcDisplayFinalScore(string s)
+    {
+        resultsText.text = s;
     }
 }
