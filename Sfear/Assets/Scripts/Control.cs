@@ -68,6 +68,7 @@ public class Control : NetworkBehaviour {
 	}
 	
 	void Update () {
+		GetComponent<Rigidbody>().velocity = Vector3.zero;
 		if(!red && isIt){
 			playerModel.GetComponent<MeshRenderer>().material = taggedItMaterial;
 			red = true;
